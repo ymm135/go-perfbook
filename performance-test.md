@@ -526,5 +526,89 @@ cycles/second=3096002774
 </div>
 <br>
 
+### pprof文件内容  
+
+`pprof.samples.cpu.001.pb.gz`解压后的文件是`pprof.samples.cpu.001.pb`  
+
+
+<br>
+<div align=center>
+    <img src="./res/images/pprof-file.png" width="100%" height="60%"></img>  
+</div>
+<br>
+
 
 ## go web程序测试
+
+## 集成pprof 
+[github.com/gin-contrib/pprof](https://github.com/gin-contrib/pprof)  
+
+```go
+go get github.com/gin-contrib/pprof
+```
+
+导入:
+```go
+import "github.com/gin-contrib/pprof"
+```
+
+示例:
+```go
+package main
+
+import (
+	"github.com/gin-contrib/pprof"
+	"github.com/gin-gonic/gin"
+)
+
+func main() {
+  router := gin.Default()
+  pprof.Register(router)
+  router.Run(":3333")
+}
+```
+
+另外还需要设置超时时间，如果小于采样时间，会有`timeout`错误
+```shell
+RegisterRoutes(engine)
+
+err := engine.StartServer(&http.Server{
+   Addr:              addr,
+   ReadTimeout:       time.Second * 90,
+   ReadHeaderTimeout: time.Second * 90,
+   WriteTimeout:      time.Second * 90,
+})
+```
+
+查看pprof信息
+```shell
+$ go tool pprof http://localhost:3333/debug/pprof/profile -seconds 60
+
+Fetching profile over HTTP from http://localhost:3333/debug/pprof/profile
+-seconds: open -seconds: no such file or directory
+60: open 60: no such file or directory
+Fetched 1 source profiles out of 3
+Saved profile in /Users/ymm/pprof/pprof.samples.cpu.004.pb.gz
+Type: cpu
+Time: Jul 14, 2022 at 2:28pm (CST)
+Duration: 30s, Total samples = 220ms ( 0.73%)
+Entering interactive mode (type "help" for commands, "o" for options)
+``` 
+<br>
+
+查看数据
+```shell
+▶ go tool pprof -http=:8089 /pprof/pprof.samples.cpu.004.pb.gz      
+Serving web UI on http://localhost:8089
+```
+
+<br>
+<div align=center>
+    <img src="./res/images/pprof-web-cpu.png" width="100%" height="60%"></img>  
+</div>
+<br>
+
+
+
+
+
